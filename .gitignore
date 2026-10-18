@@ -1,0 +1,24 @@
+# Secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Python virtual environment and cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Testing and tooling cache
+.pytest_cache/
+.mypy_cache/
+
+# Private student data and uploaded documents
+data/uploads/
+data/student_profiles/
+*.sqlite3
+*.db
+
+# Local editor settings
+.vscode/
