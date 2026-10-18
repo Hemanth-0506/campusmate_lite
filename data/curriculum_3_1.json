@@ -1,0 +1,93 @@
+
+{
+  "institution": "Sreenidhi Institute of Science and Technology",
+  "department": "Computer Science and Engineering",
+  "regulation": "A22",
+  "year": 3,
+  "semester": 1,
+  "source": "SNIST A22 CSE curriculum, November 2023",
+  "source_verified": true,
+  "subjects": [
+    {
+      "code": "9FC05",
+      "name": "Data Warehousing and Data Mining",
+      "type": "theory",
+      "credits": 3,
+      "selected": true,
+      "units": []
+    },
+    {
+      "code": "9EC03",
+      "name": "Software Engineering",
+      "type": "theory",
+      "credits": 2,
+      "selected": true,
+      "units": []
+    },
+    {
+      "code": "9EC04",
+      "name": "Design and Analysis of Algorithms",
+      "type": "theory",
+      "credits": 3,
+      "selected": true,
+      "units": []
+    },
+    {
+      "code": "9EC05",
+      "name": "Computer Networks",
+      "type": "theory",
+      "credits": 3,
+      "selected": true,
+      "units": []
+    },
+    {
+      "code": "9IC04",
+      "name": "Intellectual Property Rights",
+      "type": "theory",
+      "credits": null,
+      "selected": true,
+      "assessment": "Pass/Fail",
+      "units": []
+    },
+    {
+      "code": "9EC63",
+      "name": "Software Engineering Lab",
+      "type": "lab",
+      "credits": 1.5,
+      "selected": true,
+      "units": []
+    },
+    {
+      "code": "9EC64",
+      "name": "Computer Networks and Design and Analysis of Algorithms Lab",
+      "type": "lab",
+      "credits": 2,
+      "selected": true,
+      "units": []
+    },
+    {
+      "code": "9FC65",
+      "name": "Data Warehousing and Data Mining Lab",
+      "type": "lab",
+      "credits": 1.5,
+      "selected": true,
+      "units": []
+    },
+    {
+      "code": "9E585",
+      "name": "Summer Industry",
+      "type": "industry",
+      "credits": 1,
+      "selected": true,
+      "units": []
+    },
+    {
+      "code": "PE-I",
+      "name": "Professional Elective-I",
+      "type": "elective",
+      "credits": 3,
+      "selected": false,
+      "units": []
+    }
+  ]
+}
