@@ -5,7 +5,80 @@ import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
 
+from io import BytesIO, StringIO
+from pathlib import Path
+import pandas as pd
+from docx import Document
+from pypdf import PdfReader
+
 load_dotenv()
+
+def extract_document_text(uploaded_file):
+    """Extract readable text from supported uploaded documents."""
+    if uploaded_file is None:
+        return ""
+
+    filename = uploaded_file.name
+    extension = Path(filename).suffix.lower()
+    file_bytes = uploaded_file.getvalue()
+
+    try:
+        if extension == ".pdf":
+            reader = PdfReader(BytesIO(file_bytes))
+            pages = []
+
+            for page_number, page in enumerate(reader.pages, start=1):
+                text = page.extract_text() or ""
+                if text.strip():
+                    pages.append(
+                        f"[Page {page_number}]\n{text}"
+                    )
+
+            return "\n\n".join(pages)
+
+        elif extension == ".docx":
+            document = Document(BytesIO(file_bytes))
+            paragraphs = [
+                p.text for p in document.paragraphs if p.text.strip()
+            ]
+
+            # Also capture text from tables.
+            for table in document.tables:
+                for row in table.rows:
+                    paragraphs.append(
+                        " | ".join(cell.text for cell in row.cells)
+                    )
+
+            return "\n".join(paragraphs)
+
+        elif extension == ".txt":
+            return file_bytes.decode("utf-8", errors="replace")
+
+        elif extension in {".csv"}:
+            df = pd.read_csv(StringIO(
+                file_bytes.decode("utf-8", errors="replace")
+            ))
+            return df.to_string(index=False)
+
+        elif extension == ".xlsx":
+            sheets = pd.read_excel(
+                BytesIO(file_bytes), sheet_name=None
+            )
+            return "\n\n".join(
+                f"[Sheet: {sheet_name}]\n{df.to_string(index=False)}"
+                for sheet_name, df in sheets.items()
+            )
+
+        elif extension in {".png", ".jpg", ".jpeg"}:
+            return (
+                f"[Image file: {filename}. "
+                "Text extraction requires OCR.]"
+            )
+
+        return f"[Unsupported file type: {extension}]"
+
+    except Exception as exc:
+        return f"[Could not read {filename}: {exc}]"
 
 ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "").rstrip("/")
 API_KEY = os.getenv("AZURE_OPENAI_API_KEY")
@@ -32,8 +105,11 @@ DEFAULTS = {
         "goals": "Prepare consistently for semester exams",
     },
     "curriculum_file_name": "",
+    "curriculum_file_content": "",
     "almanac_file_name": "",
+    "almanac_file_content": "",
     "timetable_file_name": "",
+    "timetable_file_content": "",
     "ai_messages": [],
     "plan": None,
 }
@@ -81,6 +157,9 @@ def build_student_context():
         f"Preferred weekday study time: {p['study_hours_weekday']} hours; "
         f"Preferred weekend study time: {p['study_hours_weekend']} hours; "
         f"Academic goals: {p['goals']}. "
+        f"CURRICULUM DOCUMENT: {st.session_state.get('curriculum_file_content', '')[:25000]}. "
+        f"ACADEMIC CALENDAR: {st.session_state.get('almanac_file_content', '')[:12000]}. "
+        f"CLASS TIMETABLE: {st.session_state.get('timetable_file_content', '')[:12000]}. "
         "No verified timetable or parsed curriculum content is currently supplied to the AI."
     )
 
@@ -174,17 +253,40 @@ elif page == "My Curriculum":
         )
         timetable = st.file_uploader(
             "Your class / section timetable",
-            type=["pdf", "png", "jpg", "jpeg", "xlsx", "csv"],
+            type=["pdf", "docx", "xlsx", "csv"],
             key="timetable_upload",
             help="Upload the timetable for your actual section.",
         )
         submitted = st.form_submit_button("Save document selections", type="primary")
 
     if submitted:
-        st.session_state.curriculum_file_name = curriculum.name if curriculum else ""
-        st.session_state.almanac_file_name = almanac.name if almanac else ""
-        st.session_state.timetable_file_name = timetable.name if timetable else ""
-        st.success("Document selections saved for this session.")
+        uploads = {
+            "curriculum": curriculum,
+            "almanac": almanac,
+            "timetable": timetable,
+        }
+
+        for document_type, uploaded_file in uploads.items():
+            st.session_state[f"{document_type}_file_name"] = (
+                uploaded_file.name if uploaded_file else ""
+            )
+
+            st.session_state[f"{document_type}_file_content"] = (
+                extract_document_text(uploaded_file)
+                if uploaded_file else ""
+            )
+
+        st.success("Documents processed for this session.")
+
+        for document_type, uploaded_file in uploads.items():
+            if uploaded_file:
+                extracted = st.session_state[
+                    f"{document_type}_file_content"
+                ]
+                st.write(
+                    f"**{uploaded_file.name}** — "
+                    f"{len(extracted)} characters extracted"
+                )
 
     st.divider()
     st.subheader("Document verification")
